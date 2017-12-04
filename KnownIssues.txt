@@ -1,0 +1,76 @@
+COPSE known issues 2017-12-01
+-----------------------------
+
+Lenton etal (2017) COPSE Reloaded
+---------------------------------
+COPSE_reloaded_reloaded.m
+
+1) Spurious warnings reported to screen when loading some comparison output datasets from older models.
+  >>  Warning: Cannot load an object of class 'copse_model_sfbw':
+   (seen with some datasets in additional output data in COPSE_V2.0_test_output_full.zip)
+   No effect on the data loaded.
+
+Mills etal (2014) G3
+--------------------
+COPSE_mills2014g3_mills2014g3.m
+
+The below minor fixes are made to this version of the model. These changes make little difference to output and do not alter the conclusions of the original paper. The combined effect of changes relative to the original paper can be demonstrated by editing COPSE_mills2014g3_mills2014g3.m to select 
+run=copse_millsg3_millsg3_expts('g3mills2014nobugs', 'baseline');
+
+1) Land biota T limitation effectively removed (copse_landbiota_mills2014g3.m)
+
+   To reproduce, set
+    f_bug_g32014_landbiotatemp = 'Yes'
+   See https://github.com/sjdaines/PALEOexeter/issues/23 
+
+   Effect is: pCO2 is ~0.1 PAL low (200Ma-0), ~< 0.6 PAL low (250Ma-200Ma)
+              pO2 (not plotted in paper) is ~< 0.06 PAL high (200Ma-0), ~<0.1 PAL high (250Ma-200Ma)
+
+2) Sr concentration calculation was incorrect (not plotted in paper)
+    (copse_model_mills2014g3.m)
+
+    f_bug_g32014_Srconc: 'Yes' 
+
+3) Granite area calculation only used CFB area (copse_landsurfaceareas_mills2014g3.m)
+
+   f_granitearea = 'G3original'
+
+4) Degass forcing extrapolation to times earlier than 230Ma inconsistent
+   (copse_force_vandermeer.m)
+   DEGASS returned to background value (=1) at 230Ma, whereas OIB area assumed constant area for T > 230Ma
+
+   copse_force_vandermeer.extrapolate = 3
+
+5) Small (~1%) discrepancy between basalt area calculated from LIP table vs offline calculation.
+   (test_copse_load_phanlip('mills2014g3'), ie copse_load_phanlip.m  vs copse_force_revision_ba.m + either
+    bas_area_mills2014.xlsx or ggge20620-sup-0002-suppinfo2.mat)
+
+   https://github.com/sjdaines/PALEOexeter/issues/18
+
+6) Time-evolution of delta_Sr_sed
+   (copse_model_mills2014g3.m)
+   
+   Updated in copse_model_reloaded.m
+
+7) Silicate weathering used 288 not 288.15 K offset, resulting in ~1% offset in pCO2
+   (copse_weathering_rates_mills2014g3.m)
+    pars.f_act_energies = 'split_bug_g32014_Toffset'
+
+    https://github.com/sjdaines/PALEOexeter/issues/21
+
+Bergman etal (2004)
+-------------------
+COPSE_bergman2004_bergman2004.m
+
+1) Organic carbon degassing rolloff at low pO2 (copse_model_bergman2004.m)
+     # COPSE 5_14 C code (and Bergman 2004) use 'O2copsecrashprevent' which rolls
+     # off organic carbon degassing at low pO2. This has a big effect at low pO2 when 
+     # oxidative weathering is oxygen-independent (ie Ordovician and earlier)
+
+     f_ocdeg        : 'O2indep'    # options 'O2indep', 'O2copsecrashprevent'
+
+2) Marine N (unlikely to affect results as N adjusts due to denitrification alone)
+   (copse_marinebiota_bergman2004.m)
+
+     f_nfix_nreplete: 'Off'       # options 'Off','Sign' (COPSE 5_14 C code has 'Sign')
+

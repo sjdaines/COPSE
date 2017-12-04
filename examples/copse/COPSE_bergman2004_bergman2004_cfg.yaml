@@ -1,0 +1,150 @@
+# COPSE Bergman(2004) base model configuration (original C code version 5_14)
+
+copse5_14_base:
+    model:        
+        class:                 copse_model_bergman2004()  
+
+        force:  
+            # historical forcings from COPSE
+            - copse_force_CK_solar
+            - copse_force_UDWEbergman2004(1)
+            - copse_force_B
+            - copse_force_CPlandrel 
+
+        perturb: []             # list of perturbation functions
+
+        pars:
+            #### Physical constants
+            k_CtoK         : (paleo_const.k_CtoK)   #  convert degrees C to Kelvin
+
+            ##### model constants (Table 4 Bergman etal 2004, consts.hh in COPSE 5_14 C code)
+            k1_oxfrac      : 0.86     #  initial oxic fraction
+            k2_mocb        : 4.5e12   #  ocean organic carbon burial (mol/yr)
+            k3_nfix        : 8.72e12  #  nitrogen fixation      (mol/yr)
+            k4_denit       : 4.3e12   #  denitrification  (mol/yr)
+            k5_locb        : 4.5e12   #  land organic carbon burial (mol/yr)
+            k6_fepb        : 6e9      #  Fe-P burial (mol/yr)
+            k7_capb        : 1.5e10   #  Ca-P burial (mol/yr)
+            k11_landfrac   : 0.10345  #  fract of weath P buried on land
+            k12_ccdeg      : 6.65e12  #  carbonate C degassing
+            k13_ocdeg      : 1.25e12  #  org C degassing
+            k14_carbw      : 13.35e12 #  carbonate weathering
+            k15_plantenhance: 0.15     #  weathering enhancement factor prior to vascular plant colonisation
+            k_fire         : 100      #  fire feedback
+            k16_PANtoO     : 3.762    #  For calculating mixing ratio O2 from normalised O2
+
+            k18_oceanmass  : 1.397e21  # kg
+
+            #### COPSE S system
+            Scycle         : 'Enabled'  # 'None' to remove completely
+
+            k21_pyrw       : 0.53e12 
+            k22_gypw       : 1e12 
+            k_pyrdeg       : 0        # pyrite degassing (mol/yr)
+            k_gypdeg       : 0        # gypsum degassing (mol/yr)
+            k_mpsb         : 0.53e12  # = k21_pyrw 
+            k_mgsb         : 1e12     # =k22_gypw 
+
+            ####### option to hold oxygen constant, 1 : fix O2, 0 : do not fix O2.
+            o2fix          : 0
+
+
+            ## ########################################################################
+            ####### Options controlling functional forms
+            ##########################################################################
+
+            # Organic carbon degassing 
+            # COPSE 5_14 C code (and Bergman 2004) use 'O2copsecrashprevent' which rolls
+            # off organic carbon degassing at low pO2. This has a big effect at low pO2 when 
+            # oxidative weathering is oxygen-independent (ie Ordovician and earlier)
+            f_ocdeg        : 'O2indep'    # options 'O2indep', 'O2copsecrashprevent'
+
+            # Temperature function
+            f_temp         : 'CK1992'      # options 'CK1992','CK1992fixalbedo','mills2011'
+
+            # C (carbonate reservoir) dependence of carbonate weathering
+            f_carbwC       : 'Cindep'      # options 'Cindep','Cprop'
+
+
+            ####### Oxidative weathering
+            f_oxwO         : 'PowerO2'  # options 'PowerO2,'SatO2'
+            f_oxw_a        : 0.5 #oxidative weathering dependency on O2 concentration
+            #f_oxw_halfsat  : 1e-6 #set small value to represent O2-indep with limit to satisfy ODE integrator
+
+            # Marine N cycle
+            f_nfix_power   : 2           # 
+            f_nfix_nreplete: 'Off'       # options 'Off','Sign' (COPSE 5_14 C code has 'Sign')
+
+            # Marine ecosystem
+            newp0          : 225.956 
+
+            # Marine CPN ratio
+            # Functional form of CPsea ratio
+            f_CPsea        : 'Fixed'     # Options 'Fixed','VCI'  (Bergman 2004 run 2)
+            CPsea0         : 250         # for f_CPsea:'Fixed'
+            # Van Cappellen & Ingall (f_CPsea:'VCI') marine C/P burial ratio consts
+            f_CPsea_VCI_oxic : 217.0     # These are Redfield Revisited 1 steady-state values 
+            f_CPsea_VCI_anoxic : 4340.0  
+            #f_CPsea_VCI_oxic : 200.0     # Original VC&I values
+            #f_CPsea_VCI_anoxic : 4000.0  
+
+            CNsea0         : 37.5         # Always fixed
+
+            #marine organic carbon burial power-law dependency on new production
+            f_mocb_b       : 2 
+
+            #Marine pyrite sulphur burial dependency on oxygen
+            f_pyrburial    : 'copse_O2'  # options 'copse_O2','copse_noO2'
+
+            # C isotope fractionation calculation
+            f_cisotopefrac : 'copse_base'  # options 'copse_base','fixed', 'copse_noO2'
+
+            # S isotope fractionation calculation
+            f_sisotopefrac : 'fixed'       # options 'fixed','copse_O2'
+
+            ##########################################################################
+            ####### END Options controlling functional forms
+            ##########################################################################
+
+            
+            ##########################################################################
+            #reservoir present day sizes (mol) - used for normalisation
+            ##########################################################################
+            P0         : 3.1e15
+            N0         : 4.35e16 
+            O0         : 3.7e19
+            C0         : 5e21
+            G0         : 1.25e21
+            A0         : 3.193e18
+            #Q0         : 1.3e20
+            PYR0       : 1.8e20
+            GYP0       : 2e20
+            S0         : 4e19
+            #M0         : 1e14
+            CAL0       : 1.397e19 
+
+            pCO2atm0   : 280e-6   # pCO2 corresponding to A0 (atm)
+
+            #########################################################################
+            #reservoir initial sizes (mol)
+            ##########################################################################
+
+            Pinit       : (pars.P0)
+            Ninit       : (pars.N0) 
+            Oinit       : (pars.O0)
+            Cinit       : (pars.C0)
+            Ginit       : (pars.G0)
+            Ainit       : (pars.A0)
+            PYRinit     : (pars.PYR0)
+            GYPinit     : (pars.GYP0)
+            Sinit       : (pars.S0)
+            CALinit     : (pars.CAL0)
+
+            # initial isotope fractionation values (from COPSE 5_14 code)
+            delta_Ginit   : -26
+            delta_Cinit   : 1
+            delta_Ainit   : 0
+            delta_PYRinit : -15
+            delta_GYPinit : 20
+            delta_Sinit   : 20
+

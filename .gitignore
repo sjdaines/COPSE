@@ -1,0 +1,5 @@
+output
+examples/copse/COPSE_test_output_full
+run_copse_tests.txt
+*~
+*asv

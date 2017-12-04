@@ -1,0 +1,259 @@
+# COPSE Bergman(2004) base model configuration (original C code version 5_14)
+# settings for copse_model_sfbw
+
+copse5_14_base:
+    model:        
+        class:                 copse_model_reloaded()  
+
+        force:
+            # historical forcings from COPSE
+            - copse_force_CK_solar
+            - copse_force_UDWEbergman2004(1)
+            - copse_force_B
+            - copse_force_CPlandrel 
+
+        perturb: []             # list of perturbation functions
+
+        pars:
+            #### Physical constants
+            k_CtoK         : (paleo_const.k_CtoK)   #  convert degrees C to Kelvin
+
+            ##### model constants (Table 4 Bergman etal 2004, consts.hh in COPSE 5_14 C code)
+            k_c            : 4.328    #  new determines climate sensitivity to CO2
+            k_l            : 7.4      #  new determines temperature sensitivity to luminosity
+            k_logistic     : 12.0     #  new determines slope of logistic anoxia function
+            k_uptake       : 0.5      #  new determines efficiency of nutrient uptake in anoxia function
+            k1_oxfrac      : 0.86     #  initial oxic fraction
+            k2_mocb        : 4.5e12   #  ocean organic carbon burial (mol/yr)
+            k3_nfix        : 8.72e12  #  nitrogen fixation      (mol/yr)
+            k4_denit       : 4.3e12   #  denitrification  (mol/yr)
+            k5_locb        : 4.5e12   #  land organic carbon burial (mol/yr)
+            CPland0        : 1000     #TL new constant present day C/P land burial
+            k6_fepb        : 6e9      #  Fe-P burial (mol/yr)
+            k7_capb        : 1.5e10   #  Ca-P burial (mol/yr)
+            k11_landfrac   : 0.10345  #  fract of weath P buried on land
+            k_Psilw        : (2/12)
+            k_Pcarbw       : (5/12)
+            k_Poxidw       : (5/12)
+            k_Psedw        : 0
+            k12_ccdeg      : 6.65e12  #  carbonate C degassing
+            k13_ocdeg      : 1.25e12  #  org C degassing
+            k14_carbw      : 13.35e12 #  carbonate weathering
+            k_sfw          : 0e12     #  new seafloor weathering (mol/yr)
+            #k_silw         : 12e12    #  new terrestrial silicate weathering (mol/yr)
+            k_basfrac      : 0.35     #  new fraction of silw that is volcanic ('basalt') at present
+            #k_basw         : 3e12     #  new volcanic ('basalt') silicate weathering (mol/yr)
+            #k_granw        : 9e12     #  new non-volcanic ('granite') silicate weathering (mol/yr)
+            k_orgevapfrac  : 0.6      #  new fraction of granw (=silw-basw) that is from organics+evaporites at present
+            k15_plantenhance: 0.15     #  weathering enhancement factor prior to vascular plant colonisation
+            k_fire         : 100      #  fire feedback
+            k16_PANtoO     : 3.762    #  For calculating mixing ratio O2 from normalised O2
+            k18_oceanmass  : 1.397e21  # kg
+            newp0          : 225.956  #  (umol/kg)
+            CNsea0         : 37.5     #  marine organic C/N burial ratio
+            CPsea0         : 250      #  marine organic C/P burial ratio when f_CPsea:'Fixed'
+
+
+            #### COPSE Ca system
+            CALcycle       : 'Enabled'  # 
+
+            #### COPSE S system
+            Scycle         : 'Enabled'  # 'None' to remove completely
+
+            k21_pyrw       : 0.53e12 
+            k22_gypw       : 1e12 
+            k_pyrdeg       : 0        # pyrite degassing (mol/yr)
+            k_gypdeg       : 0        # gypsum degassing (mol/yr)
+            k_mpsb         : (pars.k21_pyrw)  # =k21_pyrw 
+            k_mgsb         : (pars.k22_gypw)  # =k22_gypw 
+
+            #### Sr system (Mills et al. 2014b) Sr fluxes
+            k_Sr_total_igw:     13e9  ### igneous weathering mol/yr
+            #k_Sr_igg:           (pars.k_Sr_total_igw * (1 - pars.k_basfrac)) ### granite weathering
+            #k_Sr_igb:           (pars.k_Sr_total_igw * pars.k_basfrac) ### basalt weathering
+            k_Sr_sedw:           17e9  ### sediment weathering
+            k_Sr_metam:         13e9  ### metamorphic flux
+            k_Sr_mantle:        7.3e9  ### direct mantle flux
+
+            #### present land areas for relative calculations, Mills et al 2014 G3
+
+            k_present_land_area: 1.5e8  ### km2
+            k_present_basalt_area: 6.8e6  ### includes island basalts, dessert 2003
+            k_present_silicate_area: 8.1e7  ### km2 dessert 2003
+            k_present_granite_area: (pars.k_present_silicate_area - pars.k_present_basalt_area) ### assuming silicates = granite+basalt
+            k_present_carbonate_area:  (pars.k_present_land_area - pars.k_present_silicate_area) ### assuming only silicates and carbonates exist
+
+
+            ####### option to hold oxygen constant, 1 : fix O2, 0 : do not fix O2.
+            o2fix          : 0
+
+
+            ## ########################################################################
+            ####### Options controlling functional forms
+            ##########################################################################
+
+            # CO2 partitioning
+            f_atfrac       : 'original'   # option 'quadratic'
+
+            # Temperature function
+            f_temp         : 'CK1992'      # options 'CK1992','CK1992fixalbedo','mills2011'
+
+            # Terrestrial ecosystem
+            f_npp          : 'original'    # options 'noT','noO2','noCO2','newCO2','bernerCO2','constant'
+            f_ignit        : 'original'    # options 'original','nofbk'
+
+            # Inorganic carbon degassing
+            f_ccdeg        : 'original'   # options 'noB'
+
+            # Organic carbon degassing 
+            # COPSE 5_14 C code (and Berman 2004) use 'O2copsecrashprevent' which rolls
+            # off organic carbon degassing at low pO2. This has a big effect at low pO2 when 
+            # oxidative weathering is oxygen-independent (ie Ordovician and earlier)
+            # For the reloaded paper we dispense with this and let the model crash if it wants
+            f_ocdeg        : 'O2indep'    # options 'O2indep', 'O2copsecrashprevent'
+
+            # Seafloor weathering
+            f_sfw_force    : 'DEGASS'      # dependent on degassing (i.e. seafloor spreading), options 'None'     
+            f_sfw_opt      : 'sfw_temp'    # dependent on temperature, options 'sfw_strong','sfw_noT','mills2014pCO2'
+            f_sfw_alpha    : 0.23          # sensitivity if CO2 dependent (Mills et al. 2014)
+
+            # Vegetation dependence of weathering
+            f_vegweath     : 'original'    # options 'original','new','newnpp'
+            f_co2fert      : 'original'    # CO2 fertilisation effect in original weathering function
+
+            # Activation energies for basalt and granite weathering
+            f_act_energies : 'single'      # options 'single'
+                        
+            # Granite weathering 
+            f_gran_link_u  : 'original'    # linear depedence on uplift
+            f_granitearea  : 'Fixed'       # area forcing, options 'Fixed','G3improved'
+            #f_granitearea:  'DefaultForced'    # leave at default = 1
+            
+            # Basalt weathering
+            f_bas_link_u   : 'yes'         # dependence on uplift, options 'yes'
+            f_basaltarea:   'DefaultForced'    # leave at default = 1  (options 'DefaultForced', 'G3original', ''G3improved)
+            #f_oib_scaling : 'Degass'      # G3 OIB forcing scales with degassing
+
+            # Carbonate weathering
+            f_carbwC       : 'Cindep'      # dependence on carbonate C reservoir, options 'Cindep' (original)
+            f_carb_link_u  : 'yes'         # linear depedence on uplift
+            
+            # Gypsum weathering
+            f_gypweather   : 'original'    # options 'original','forced'
+
+            # Oxidative C weathering
+            f_oxwO         : 'PowerO2'     # options 'PowerO2,'SatO2'
+            f_oxw_a        : 0.5           # power dependence on O2 concentration
+            f_oxwG         : 'Gprop'       # dependence on organic C reservoir
+
+            # Pyrite weathering 
+            f_pyrweather   : 'copse_O2'    # options 'copse_O2' (original),'forced'
+
+            # Phosphorus weathering 
+            f_p_kinetics   : 'no'          # assumed to follow host rock kinetics, options 'yes' (=apatite Ea)
+            f_p_apportion  : 'no'          # no=granite and basalt assumed to have same P content, options 'yes'
+
+            # Land organic carbon burial
+            f_locb         : 'original'    # options 'Uforced','split','original'
+
+            # Marine anoxia
+            f_anoxia       : 'original'    # options 'original'
+
+            # Marine N cycle
+            f_nfix_power   : 2             # SD update to BM Matlab code which has f_nfix_power : 1. This fixes discrepancy between P (phosphorus) and COPSE 5_14 (most visible in Cambrian)
+            f_denit        : 'original'    # options 'new'
+
+            # Marine organic carbon burial
+            f_mocb         : 'original'    # options 'Uforced','O2dep','both'
+            f_mocb_b       : 2             # power-law dependency on new production
+
+            # Marine organic phosphorus burial
+            f_CPsea        : 'Fixed'       # Options 'Fixed','VCI' (Bergman 2004 run 2)
+            f_CPsea_VCI_oxic : 217.0       # These are Redfield Revisited 1 steady-state values 
+            f_CPsea_VCI_anoxic : 4340.0  
+
+            # Marine Fe-P burial
+            f_fepb         : 'original'    # options 'Dforced','sfw','original'
+
+            # Marine Ca-P burial
+            f_capb         : 'original'    # options 'redox'
+
+            # Marine pyrite sulphur burial 
+            f_pyrburial    : 'copse_O2'    # dependency on oxygen, options 'copse_noO2','anoxia'
+
+            # Marine gypsum sulphur burial
+            f_gypburial    : 'original'    # dependency on prescribed [Ca++], options 'original'
+
+            # Carbonate burial 
+            f_SRedoxAlk         : 'off'         # link sulphur redox to alkalinity, options 'on'
+
+            # C isotope fractionation calculation
+            f_cisotopefrac : 'copse_base'  # options 'copse_base','fixed', 'copse_noO2'
+
+            # S isotope fractionation calculation
+            f_sisotopefrac : 'fixed'       # options 'fixed','copse_O2'
+            
+            # Sr metamorphic loss flux
+            f_Sr_metam     : 'alternative' # dependency on parent reservoir size, options 'original'
+
+            # Sr weathering flux
+            f_Sr_sedw      : 'alternative' # dependency on parent reservoir size, options 'original'
+
+            ##########################################################################
+            ####### END Options controlling functional forms
+            ##########################################################################
+
+            
+            ##########################################################################
+            #reservoir present day sizes (mol) - used for normalisation
+            ##########################################################################
+            P0         : 3.1e15
+            N0         : 4.35e16 
+            O0         : 3.7e19
+            C0         : 5e21
+            G0         : 1.25e21
+            A0         : 3.193e18
+            PYR0       : 1.8e20
+            GYP0       : 2e20
+            S0         : 4e19
+            CAL0       : 1.397e19 
+
+            pCO2atm0   : 280e-6   # pCO2 corresponding to A0 (atm)
+
+            #### normalization for Sr reservoirs
+            Sr_ocean0  : 1.2e17 ### francois and walker 1992
+            Sr_sed0    : 5e18   ### francois and walker 1992
+
+            #########################################################################
+            #reservoir initial sizes (mol)
+            ##########################################################################
+
+            Pinit       : (pars.P0)
+            Ninit       : (pars.N0) 
+            Oinit       : (pars.O0)
+            Cinit       : (pars.C0)
+            Ginit       : (pars.G0)
+            Ainit       : (pars.A0)
+            PYRinit     : (pars.PYR0)
+            GYPinit     : (pars.GYP0)
+            Sinit       : (pars.S0)
+            CALinit     : (pars.CAL0)
+
+            # initial isotope fractionation values (from COPSE 5_14 code)
+            delta_Ginit   : -26
+            delta_Cinit   : 1
+            delta_Ainit   : 0
+            delta_PYRinit : -15
+            delta_GYPinit : 20
+            delta_Sinit   : 20
+
+            #### starting Sr reservoirs
+            Sr_ocean_init  : (pars.Sr_ocean0)
+            Sr_sed_init    : (pars.Sr_sed0)
+
+            #### starting Sr fractionations
+            delta_new_ig_present: 0.705 ### francois and walker
+            delta_old_ig_present: 0.715 ### updated; 0.715 G-cubed, 0.718 francois and walker
+            delta_mantle_present: 0.703 ### francois and walker
+            delta_Sr_ocean_start: 0.708 ### reasonable average value for Phanerozoic
+            delta_Sr_sed_start  : 0.708 ### updated reasonable average value for Phanerozoic
